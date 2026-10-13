@@ -122,12 +122,69 @@ class RegistrationServiceTest {
         assertEquals(1, course.getCurrentEnrollment());
     }
 
+    
+@Test
+void shouldRejectRegistrationWhenCourseIsAtCapacity() {
+    Student student = new Student("S102", "Rahul");
+
+    Course course = new Course(
+            "CS302",
+            "Operating Systems",
+            4,
+            2,
+            true,
+            null
+    );
+
+    // Simulate a course that already has two enrolled students.
+    course.incrementEnrollment();
+    course.incrementEnrollment();
+
+    RegistrationService service = new RegistrationService();
+
+    boolean result = service.register(student, course);
+
+    assertFalse(result);
+    assertFalse(student.isRegistered("CS302"));
+    assertEquals(0, student.getTotalCredits());
+    assertEquals(2, course.getCurrentEnrollment());
+    assertTrue(student.getRegisteredCourses().isEmpty());
+}
+
+@Test
+void shouldAllowRegistrationWhenExactlyOneSeatRemains() {
+    Student student = new Student("S103", "Priya");
+
+    Course course = new Course(
+            "CS303",
+            "Database Systems",
+            4,
+            2,
+            true,
+            null
+    );
+
+    // One of the two available seats is already occupied.
+    course.incrementEnrollment();
+
+    RegistrationService service = new RegistrationService();
+
+    boolean result = service.register(student, course);
+
+    assertTrue(result);
+    assertTrue(student.isRegistered("CS303"));
+    assertEquals(4, student.getTotalCredits());
+    assertEquals(2, course.getCurrentEnrollment());
+}
+
+
+        
     @Test
-    void shouldRejectRegistrationWhenCreditLimitIsExceeded() {
+    void shouldAllowRegistrationWhenTotalCreditsReach24() {
 
         Student student = new Student("S101", "Anita");
 
-        // Simulate 20 existing credits
+        // Simulate 20 existing credits.
         student.addRegistration("CS101", 4);
         student.addRegistration("CS102", 4);
         student.addRegistration("CS201", 4);
@@ -147,7 +204,48 @@ class RegistrationServiceTest {
 
         boolean result = service.register(student, course);
 
-        assertFalse(result);
-        assertFalse(student.isRegistered("CS301"));
+        assertTrue(result);
+        assertTrue(student.isRegistered("CS301"));
+        assertEquals(24, student.getTotalCredits());
+        assertEquals(1, course.getCurrentEnrollment());
     }
+
+    
+    @Test
+    void shouldRejectRegistrationWhenCreditsWouldExceed24() {
+
+        Student student = new Student("S104", "Arun");
+
+        // Simulate 24 existing credits.
+        student.addRegistration("CS101", 4);
+        student.addRegistration("CS102", 4);
+        student.addRegistration("CS201", 4);
+        student.addRegistration("CS202", 4);
+        student.addRegistration("CS203", 4);
+        student.addRegistration("CS204", 4);
+
+        java.util.Set<String> registeredBefore =
+                java.util.Set.copyOf(student.getRegisteredCourses());
+
+        Course course = new Course(
+                "CS301",
+                "Data Structures",
+                4,
+                30,
+                true,
+                null
+        );
+
+        RegistrationService service = new RegistrationService();
+
+        boolean result = service.register(student, course);
+
+        assertFalse(result);
+        assertEquals(registeredBefore, student.getRegisteredCourses());
+        assertEquals(24, student.getTotalCredits());
+        assertFalse(student.isRegistered("CS301"));
+        assertEquals(0, course.getCurrentEnrollment());
+    }
+
+
 }
