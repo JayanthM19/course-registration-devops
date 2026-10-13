@@ -178,12 +178,13 @@ void shouldAllowRegistrationWhenExactlyOneSeatRemains() {
 }
 
 
+        
     @Test
-    void shouldRejectRegistrationWhenCreditLimitIsExceeded() {
+    void shouldAllowRegistrationWhenTotalCreditsReach24() {
 
         Student student = new Student("S101", "Anita");
 
-        // Simulate 20 existing credits
+        // Simulate 20 existing credits.
         student.addRegistration("CS101", 4);
         student.addRegistration("CS102", 4);
         student.addRegistration("CS201", 4);
@@ -203,7 +204,48 @@ void shouldAllowRegistrationWhenExactlyOneSeatRemains() {
 
         boolean result = service.register(student, course);
 
-        assertFalse(result);
-        assertFalse(student.isRegistered("CS301"));
+        assertTrue(result);
+        assertTrue(student.isRegistered("CS301"));
+        assertEquals(24, student.getTotalCredits());
+        assertEquals(1, course.getCurrentEnrollment());
     }
+
+    
+    @Test
+    void shouldRejectRegistrationWhenCreditsWouldExceed24() {
+
+        Student student = new Student("S104", "Arun");
+
+        // Simulate 24 existing credits.
+        student.addRegistration("CS101", 4);
+        student.addRegistration("CS102", 4);
+        student.addRegistration("CS201", 4);
+        student.addRegistration("CS202", 4);
+        student.addRegistration("CS203", 4);
+        student.addRegistration("CS204", 4);
+
+        java.util.Set<String> registeredBefore =
+                java.util.Set.copyOf(student.getRegisteredCourses());
+
+        Course course = new Course(
+                "CS301",
+                "Data Structures",
+                4,
+                30,
+                true,
+                null
+        );
+
+        RegistrationService service = new RegistrationService();
+
+        boolean result = service.register(student, course);
+
+        assertFalse(result);
+        assertEquals(registeredBefore, student.getRegisteredCourses());
+        assertEquals(24, student.getTotalCredits());
+        assertFalse(student.isRegistered("CS301"));
+        assertEquals(0, course.getCurrentEnrollment());
+    }
+
+
 }
