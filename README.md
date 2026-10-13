@@ -2,6 +2,8 @@
 
 ## 1. Project Overview
 
+
+
 This project implements a Java-based Course Registration application and demonstrates Git version control, Maven multi-module builds, JUnit 5 testing, Jenkins Declarative Pipeline configuration, and Kubernetes deployment using Minikube.
 
 ## 2. Prerequisites
@@ -18,7 +20,7 @@ Verify the installations:
 
 ```powershell
 java -version
-mvn -version
+mvn -version 
 git --version
 docker info
 kubectl version --client
